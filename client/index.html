@@ -44,10 +44,13 @@
       <div class="large-12 columns">
       	<div class="large-4">
 	        <h5>Upload a statement</h5>
-          <form>
+          <form action="http://localhost:4000/txns" method="POST" enctype="multipart/form-data">
             <div class="row">
               <div class="large-12 columns">
-                <input type="file" placeholder="large-12.columns" />
+                <input type="file" placeholder="large-12.columns" name="txn_file" />
+              </div>
+              <div class="large-12 columns">
+                <input type="submit" class="button" />
               </div>
             </div>
           </form>
