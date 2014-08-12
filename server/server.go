@@ -4,16 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/context"
 	"net/http"
 	"net/http/httputil"
-	"sync"
-	"time"
-)
-
-var (
-	mutex sync.RWMutex
-	data = make(map[*http.Request]map[interface{}]interface{})
-	datat = make(map[*http.Request]int64)
 )
 
 func TxnsHandler(w http.ResponseWriter, r *http.Request) {
@@ -31,10 +24,6 @@ func GetTxnsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
-	for k, _ := range r.Header {
-		canonicalKey := http.CanonicalHeaderKey(k)
-		fmt.Fprintf(w, "%s: %s\n", canonicalKey, r.Header.Get(canonicalKey))
-	}
 	requestBytes, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		LogError(err)
@@ -44,7 +33,7 @@ func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
 
 func IdentifyRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Set(r, "RequestID", UUID())
+		context.Set(r, "RequestID", UUID())
 		handler.ServeHTTP(w, r)
 	})
 }
@@ -53,7 +42,7 @@ func LogRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logData := map[string]string{
 			"eventType": "IncomingRequest",
-			"requestID": Get(r, "RequestID").(string),
+			"requestID": context.Get(r, "RequestID").(string),
 			"remoteHost": r.RemoteAddr,
 			"httpMethod": r.Method,
 			"resource": r.URL.String(),
@@ -83,27 +72,6 @@ func UUID() string {
 	b := make([]byte, 16)
 	rand.Read(b)
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-}
-
-func Set(r *http.Request, key, val interface{}) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	if data[r] == nil {
-		data[r] = make(map[interface{}]interface{})
-		datat[r] = time.Now().Unix()
-	}
-	data[r][key] = val
-}
-
-func Get(r *http.Request, key interface{}) interface{} {
-	mutex.RLock()
-	if ctx := data[r]; ctx != nil {
-		value := ctx[key]
-		mutex.RUnlock()
-		return value
-	}
-	mutex.RUnlock()
-	return nil
 }
 
 func main() {
