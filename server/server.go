@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/context"
+	"io"
 	"net/http"
-	"net/http/httputil"
 )
 
 func TxnsHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,11 +24,21 @@ func GetTxnsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
-	requestBytes, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		LogError(err)
-	}
-	fmt.Fprintln(w, string(requestBytes))
+	reader, err := r.MultipartReader()
+	CheckError(w, err)
+
+	form, err := reader.ReadForm(1024 ^ 2)
+	CheckError(w, err)
+
+	file_header := form.File["txn_file"][0]
+	file, err := file_header.Open()
+	CheckError(w, err)
+
+	fmt.Println(file)
+	written, err := io.Copy(w, file)
+	CheckError(w, err)
+
+	LogDebugMessage(fmt.Sprintf("%d bytes were written.", written))
 }
 
 func IdentifyRequest(handler http.Handler) http.Handler {
@@ -36,6 +46,13 @@ func IdentifyRequest(handler http.Handler) http.Handler {
 		context.Set(r, "RequestID", UUID())
 		handler.ServeHTTP(w, r)
 	})
+}
+
+func CheckError(w http.ResponseWriter, err error) {
+	if err != nil {
+		LogError(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
 }
 
 func LogRequest(handler http.Handler) http.Handler {
@@ -60,6 +77,18 @@ func LogError(e error) {
 	logData := map[string]string{
 		"eventType": "Error",
 		"errorMessage": e.Error(),
+	}
+	logJSON, err := json.Marshal(logData)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(logJSON))
+}
+
+func LogDebugMessage(m string) {
+	logData := map[string]string{
+		"eventType": "DebugMessage",
+		"debugMessage": m,
 	}
 	logJSON, err := json.Marshal(logData)
 	if err != nil {
