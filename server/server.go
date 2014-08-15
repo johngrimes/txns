@@ -2,25 +2,23 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/context"
-	"io"
+	"strings"
 	"net/http"
+	"time"
 )
 
 func TxnsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		GetTxnsHandler(w, r)
-	} else if r.Method == "POST" {
+	if r.Method == "POST" {
 		UploadTxnsHandler(w, r)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
-}
-
-func GetTxnsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello!")
 }
 
 func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,11 +32,17 @@ func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
 	file, err := file_header.Open()
 	CheckError(w, err)
 
-	fmt.Println(file)
-	written, err := io.Copy(w, file)
-	CheckError(w, err)
-
-	LogDebugMessage(fmt.Sprintf("%d bytes were written.", written))
+	csv := csv.NewReader(file)
+	for {
+		row, err := csv.Read()
+		if row == nil { break }
+		concatRow := strings.Join(row, "")
+		hasher := sha1.New()
+		hasher.Write([]byte(concatRow))
+		rowHash := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+		fmt.Println(string(rowHash), row)
+		CheckError(w, err)
+	}
 }
 
 func IdentifyRequest(handler http.Handler) http.Handler {
@@ -58,17 +62,13 @@ func CheckError(w http.ResponseWriter, err error) {
 func LogRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logData := map[string]string{
-			"eventType": "IncomingRequest",
+			"eventType": "Request",
 			"requestID": context.Get(r, "RequestID").(string),
 			"remoteHost": r.RemoteAddr,
 			"httpMethod": r.Method,
 			"resource": r.URL.String(),
 		}
-		logJSON, err := json.Marshal(logData)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(logJSON))
+		LogEvent(logData)
 		handler.ServeHTTP(w, r)
 	})
 }
@@ -78,11 +78,7 @@ func LogError(e error) {
 		"eventType": "Error",
 		"errorMessage": e.Error(),
 	}
-	logJSON, err := json.Marshal(logData)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(logJSON))
+	LogEvent(logData)
 }
 
 func LogDebugMessage(m string) {
@@ -90,10 +86,13 @@ func LogDebugMessage(m string) {
 		"eventType": "DebugMessage",
 		"debugMessage": m,
 	}
-	logJSON, err := json.Marshal(logData)
-	if err != nil {
-		panic(err)
-	}
+	LogEvent(logData)
+}
+
+func LogEvent(event map[string]string) {
+	event["loggedAt"] = time.Now().Format(time.RFC3339Nano)
+	logJSON, err := json.Marshal(event)
+	if err != nil { panic(err) }
 	fmt.Println(string(logJSON))
 }
 
