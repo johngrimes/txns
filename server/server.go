@@ -2,14 +2,18 @@ package main
 
 import (
 	"crypto/rand"
-	"crypto/sha1"
-	"encoding/base64"
+	"crypto/sha512"
+	"database/sql"
+	"encoding/hex"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/context"
+	_ "github.com/lib/pq"
+	"strconv"
 	"strings"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -32,16 +36,26 @@ func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
 	file, err := file_header.Open()
 	CheckError(w, err)
 
+	db, err := sql.Open("postgres", "user=johngrimes dbname=prec")
+	CheckError(w, err)
+
 	csv := csv.NewReader(file)
 	for {
 		row, err := csv.Read()
 		if row == nil { break }
 		concatRow := strings.Join(row, "")
-		hasher := sha1.New()
+		hasher := sha512.New()
 		hasher.Write([]byte(concatRow))
-		rowHash := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
-		fmt.Println(string(rowHash), row)
-		CheckError(w, err)
+		rowHash := hex.EncodeToString(hasher.Sum(nil))
+		re := regexp.MustCompile(".")
+		debitCents, err := strconv.ParseInt(re.ReplaceAllString(row[2], ""), 10, 64)
+		if CheckError(w, err) { break }
+		creditCents, err := strconv.ParseInt(re.ReplaceAllString(row[3], ""), 10, 64)
+		if CheckError(w, err) { break }
+		balanceCents, err := strconv.ParseInt(re.ReplaceAllString(row[4], ""), 10, 64)
+		if CheckError(w, err) { break }
+		result, err := db.Query("INSERT INTO txns (hash, date, description, debit_cents, credit_cents, balance_cents) VALUES ($1, $2, $3, $4, $5, $6)", rowHash, row[0], row[1], debitCents, creditCents, balanceCents)
+		fmt.Println(result)
 	}
 }
 
@@ -52,10 +66,13 @@ func IdentifyRequest(handler http.Handler) http.Handler {
 	})
 }
 
-func CheckError(w http.ResponseWriter, err error) {
+func CheckError(w http.ResponseWriter, err error) bool {
 	if err != nil {
 		LogError(err)
 		http.Error(w, "", http.StatusInternalServerError)
+		return true
+	} else {
+		return false
 	}
 }
 
