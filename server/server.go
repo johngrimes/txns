@@ -36,27 +36,59 @@ func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
 	file, err := file_header.Open()
 	CheckError(w, err)
 
-	db, err := sql.Open("postgres", "user=johngrimes dbname=prec")
+	db, err := sql.Open("postgres", "user=johngrimes dbname=prec sslmode=disable")
 	CheckError(w, err)
 
 	csv := csv.NewReader(file)
-	for {
+	for i := 0; true; i++ {
 		row, err := csv.Read()
+		if i == 0 { continue }
 		if row == nil { break }
 		concatRow := strings.Join(row, "")
 		hasher := sha512.New()
 		hasher.Write([]byte(concatRow))
 		rowHash := hex.EncodeToString(hasher.Sum(nil))
-		re := regexp.MustCompile(".")
-		debitCents, err := strconv.ParseInt(re.ReplaceAllString(row[2], ""), 10, 64)
+		dbDate, err := DBifyDateString(row[0])
 		if CheckError(w, err) { break }
-		creditCents, err := strconv.ParseInt(re.ReplaceAllString(row[3], ""), 10, 64)
+		debitCents, err := ParseCurrencyString(row[2], true)
 		if CheckError(w, err) { break }
-		balanceCents, err := strconv.ParseInt(re.ReplaceAllString(row[4], ""), 10, 64)
+		creditCents, err := ParseCurrencyString(row[3], true)
 		if CheckError(w, err) { break }
-		result, err := db.Query("INSERT INTO txns (hash, date, description, debit_cents, credit_cents, balance_cents) VALUES ($1, $2, $3, $4, $5, $6)", rowHash, row[0], row[1], debitCents, creditCents, balanceCents)
-		fmt.Println(result)
+		balanceCents, err := ParseCurrencyString(row[4], false)
+		if CheckError(w, err) { break }
+		if debitCents < 0 && creditCents < 0 {
+			BadRequest(w, "Bad statement line encountered: non-zero debit and credit values.")
+		}
+		_, err = db.Query(`INSERT INTO txns (hash, date, description, debit_cents, credit_cents, balance_cents)
+	SELECT $1, $2, $3, $4, $5, $6
+	WHERE NOT EXISTS (
+		SELECT id FROM txns WHERE hash = cast($1 AS varchar)
+	);`, rowHash, dbDate, row[1], debitCents, creditCents, balanceCents)
+		if CheckError(w, err) { break }
 	}
+
+	db.Close()
+}
+
+func ParseCurrencyString(s string, convertToUnsigned bool) (int64, error) {
+	if len(s) == 0 { return 0, nil }
+	decimalRe := regexp.MustCompile("\\.")
+	negativeZeroRe := regexp.MustCompile("-0")
+	s = decimalRe.ReplaceAllString(s, "")
+	s = negativeZeroRe.ReplaceAllString(s, "-")
+	s = strings.Trim(s, "0 ")
+	amount, err := strconv.ParseInt(s, 10, 64)
+	if convertToUnsigned && amount < 0 {
+		return amount * -1, err
+	} else {
+		return amount, err
+	}
+}
+
+func DBifyDateString(s string) (string, error) {
+	parsedTime, err := time.Parse("2/01/2006", s)
+	if err != nil { return "", err }
+	return parsedTime.Format("2006-01-02"), nil
 }
 
 func IdentifyRequest(handler http.Handler) http.Handler {
@@ -64,6 +96,10 @@ func IdentifyRequest(handler http.Handler) http.Handler {
 		context.Set(r, "RequestID", UUID())
 		handler.ServeHTTP(w, r)
 	})
+}
+
+func BadRequest(w http.ResponseWriter, msg string) {
+	http.Error(w, msg, http.StatusBadRequest)
 }
 
 func CheckError(w http.ResponseWriter, err error) bool {
