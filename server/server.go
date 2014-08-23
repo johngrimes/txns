@@ -18,11 +18,35 @@ import (
 )
 
 func TxnsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
+	if r.Method == "GET" {
+		GetTxnsHandler(w, r)
+	} else if r.Method == "POST" {
 		UploadTxnsHandler(w, r)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+func GetTxnsHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "user=johngrimes dbname=prec sslmode=disable")
+	CheckError(w, err)
+	rows, err := db.Query("SELECT * FROM txns;")
+	var txns []map[string]interface{}
+	for rows.Next() {
+		var id int
+		var hash, description string
+		var date time.Time
+		var debitCents, creditCents, balanceCents int64
+		rows.Scan(&id, &hash, &date, &description, &debitCents, &creditCents, &balanceCents)
+		txn := make(map[string]interface{})
+		txn["id"], txn["date"], txn["description"] = id, date, description
+		txn["debitCents"], txn["creditCents"], txn["balanceCents"] = debitCents, creditCents, balanceCents
+		txns = append(txns, txn)
+	}
+	jsonTxns, err := json.Marshal(txns)
+	CheckError(w, err)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(jsonTxns))
 }
 
 func UploadTxnsHandler(w http.ResponseWriter, r *http.Request) {
