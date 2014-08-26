@@ -1,67 +1,85 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prec</title>
-    <link rel="stylesheet" href="css/foundation.css" />
-    <script src="js/vendor/modernizr.js"></script>
+    <script src="http://fb.me/react-0.11.1.js"></script>
+    <script src="http://fb.me/JSXTransformer-0.11.1.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   </head>
   <body>
+    <h2>Everyday Account</h2>
 
-    <div class="row">
-      <div class="large-12 columns">
-        <h2>Everyday Account</h2>
-      </div>
+    <div id="txns">
     </div>
 
-    <div class="row">
-      <div class="large-12 columns">
-        <table>
-          <thead>
+    <h5>Upload a statement</h5>
+    <form action="http://localhost:4000/txns" method="POST" enctype="multipart/form-data">
+      <fieldset>
+        <input type="file" placeholder="large-12.columns" name="txn_file" />
+        <input type="submit" class="button" />
+      </fieldset>
+    </form>
+
+
+    <script type="text/jsx">
+      /** @jsx React.DOM */
+
+      var TxnTable = React.createClass({
+        getInitialState: function() {
+          return { txns: [] };
+        },
+
+        componentDidMount: function() {
+          $.getJSON('http://localhost:4000/txns', function(data) {
+            this.setState({ txns: data });
+          }.bind(this));
+        },
+
+        render: function() {
+          var txns = this.state.txns;
+          return (
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Debit</th>
+                  <th>Credit</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {txns.map(function(txn) {
+                  return <Txn txn={txn} />;
+                })}
+              </tbody>
+            </table>
+          );
+        }
+      });
+
+      var Txn = React.createClass({
+        render: function() {
+          var txn = this.props.txn;
+          return (
             <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Debit</th>
-              <th>Credit</th>
-              <th>Balance</th>
+              <td>{txn.date}</td>
+              <td>{txn.description}</td>
+              <td>{txn.debitCents}</td>
+              <td>{txn.creditCents}</td>
+              <td>{txn.balanceCents}</td>
             </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>2/08/2014</td>
-              <td>ING DIRECT - ATM Rebate - Receipt 6818 We paid the ATM fee for you!</td>
-              <td></td>
-              <td>2.00</td>
-              <td>403.84</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+          );
+        }
+      });
 
-    <div class="row">
-      <div class="large-12 columns">
-      	<div class="large-4">
-	        <h5>Upload a statement</h5>
-          <form action="http://localhost:4000/txns" method="POST" enctype="multipart/form-data">
-            <div class="row">
-              <div class="large-12 columns">
-                <input type="file" placeholder="large-12.columns" name="txn_file" />
-              </div>
-              <div class="large-12 columns">
-                <input type="submit" class="button" />
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <script src="js/vendor/jquery.js"></script>
-    <script src="js/foundation.min.js"></script>
-    <script>
-      $(document).foundation();
+      setInterval(function() {
+        React.renderComponent(
+          <TxnTable />,
+          document.getElementById('txns')
+        );
+      }, 1000);
     </script>
   </body>
 </html>

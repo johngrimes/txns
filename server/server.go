@@ -46,6 +46,7 @@ func GetTxnsHandler(w http.ResponseWriter, r *http.Request) {
 	jsonTxns, err := json.Marshal(txns)
 	CheckError(w, err)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Fprint(w, string(jsonTxns))
 }
 
