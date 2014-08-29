@@ -16,23 +16,23 @@
     <h5>Upload a statement</h5>
     <form action="http://localhost:4000/txns" method="POST" enctype="multipart/form-data">
       <fieldset>
-        <input type="file" name="txn_file" />
+        <input type="file" id="txn_file" name="txn_file" />
         <input type="submit" />
       </fieldset>
     </form>
 
     <script type="text/javascript">
-      $(document).on('submit', 'form', function(event) {
-        console.log(event);
+      $('form').on('submit', function(event) {
         event.preventDefault();
-        console.log($(this).serialize());
-        console.log(new FormData($(this)[0]));
+        formData = new FormData();
+        fileInput = $('#txn_file')[0]
+        formData.append(fileInput.name, fileInput.files[0])
         $.ajax({
           url: $(this).attr('action'),
           type: $(this).attr('method'),
-          contentType: 'multipart/form-data',
-          dataType: 'json',
-          data: $(this).serialize(),
+          contentType: false,
+          processData: false,
+          data: formData,
           success: function(data) {
             console.log('AJAX form submitted.');
           },
