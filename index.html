@@ -16,11 +16,33 @@
     <h5>Upload a statement</h5>
     <form action="http://localhost:4000/txns" method="POST" enctype="multipart/form-data">
       <fieldset>
-        <input type="file" placeholder="large-12.columns" name="txn_file" />
-        <input type="submit" class="button" />
+        <input type="file" name="txn_file" />
+        <input type="submit" />
       </fieldset>
     </form>
 
+    <script type="text/javascript">
+      $(document).on('submit', 'form', function(event) {
+        console.log(event);
+        event.preventDefault();
+        console.log($(this).serialize());
+        console.log(new FormData($(this)[0]));
+        $.ajax({
+          url: $(this).attr('action'),
+          type: $(this).attr('method'),
+          contentType: 'multipart/form-data',
+          dataType: 'json',
+          data: $(this).serialize(),
+          success: function(data) {
+            console.log('AJAX form submitted.');
+          },
+          error: function(xhr, err) {
+            console.log(err);
+          }
+        });
+        return false;
+      });
+    </script>
 
     <script type="text/jsx">
       /** @jsx React.DOM */
@@ -30,8 +52,20 @@
           return { txns: [] };
         },
 
+        getDefaultProps: function() {
+          return {
+            txnsURL: 'http://localhost:4000/txns',
+            pollFrequency: 10000
+          };
+        },
+
         componentDidMount: function() {
-          $.getJSON('http://localhost:4000/txns', function(data) {
+          this.refreshTxns();
+          setInterval(this.refreshTxns, this.props.pollFrequency);
+        },
+
+        refreshTxns: function() {
+          $.getJSON(this.props.txnsURL, function(data) {
             this.setState({ txns: data });
           }.bind(this));
         },
