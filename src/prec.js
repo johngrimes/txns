@@ -3,6 +3,7 @@
 var AccountPage = React.createClass({
   handleSubmitSuccess: function() {
     this.refs.txnTable.refreshTxns();
+    this.refs.txnUploadForm.render();
   },
 
   render: function() {
@@ -11,7 +12,7 @@ var AccountPage = React.createClass({
         <h2>Everyday Account</h2>
         <TxnTable ref="txnTable" />
         <h5>Upload a statement</h5>
-        <TxnUploadForm onSubmitSuccess={this.handleSubmitSuccess} />
+        <TxnUploadForm ref="txnUploadForm" onSubmitSuccess={this.handleSubmitSuccess} />
       </section>
     );
   }
