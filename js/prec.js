@@ -9,9 +9,8 @@ var AccountPage = React.createClass({
   render: function() {
     return (
       <section>
-        <h2>Everyday Account</h2>
+        <button type="button" className="btn btn-primary btn-upload-statement">Upload a statement</button>
         <TxnTable ref="txnTable" />
-        <h5>Upload a statement</h5>
         <TxnUploadForm ref="txnUploadForm" onSubmitSuccess={this.handleSubmitSuccess} />
       </section>
     );
@@ -44,7 +43,7 @@ var TxnTable = React.createClass({
   render: function() {
     var txns = this.state.txns;
     return (
-      <table>
+      <table className="table table-bordered table-hover">
         <thead>
           <tr>
             <th>Date</th>
@@ -109,12 +108,24 @@ var TxnUploadForm = React.createClass({
 
   render: function() {
     return (
-      <form onSubmit={this.handleSubmit} action={this.props.action} method="POST" encType="multipart/form-data">
-        <fieldset>
-          <input type="file" ref="fileInput" name="txn_file" />
-          <input type="submit" />
-        </fieldset>
-      </form>
+      <div id="modal-upload-statement" className="modal fade">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <form onSubmit={this.handleSubmit} action={this.props.action} method="POST" encType="multipart/form-data">
+              <div className="modal-header">
+                <button type="button" className="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span className="sr-only">Close</span></button>
+                <h4 className="modal-title">Upload a statement</h4>
+              </div>
+              <div className="modal-body">
+                <input type="file" ref="fileInput" name="txn_file" />
+              </div>
+              <div className="modal-footer">
+                <button type="submit" className="btn btn-primary">Upload</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     );
   }
 });
