@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Prec</title>
+    <script src="http://fb.me/react-0.11.1.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="./css/prec.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <ul id="account-tabs" class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#">Everyday Account</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div id="account">
+            <section>
+              <button type="button" class="btn btn-primary btn-upload-statement" data-toggle="modal" data-target="#modal-upload-statement">Upload a statement</button>
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @txns.each do |txn| %>
+                  <tr>
+                    <td><%= txn[:date] %></td>
+                    <td><%= txn[:description] %></td>
+                    <td><%= format_currency(txn[:debit_cents]) %></td>
+                    <td><%= format_currency(txn[:credit_cents]) %></td>
+                    <td><%= format_currency(txn[:balance_cents]) %></td>
+                  </tr>
+                  <% end %>
+                </tbody>
+              </table>
+              <div id="modal-upload-statement" class="modal fade">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="/txns" method="POST" enctype="multipart/form-data">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Upload a statement</h4>
+                      </div>
+                      <div class="modal-body">
+                        <input type="file" ref="fileInput" name="txn_file" />
+                      </div>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
