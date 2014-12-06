@@ -1,0 +1,2 @@
+require './prec'
+run Prec
