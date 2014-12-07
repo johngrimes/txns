@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'sinatra/sequel'
 require 'json'
 require 'csv'
+
 require 'pry'
 
 class Prec < Sinatra::Base
@@ -13,6 +14,7 @@ class Prec < Sinatra::Base
 
   get '/txns.html' do
     @txns = database[:txns].reverse_order(:date)
+    @categories = database[:categories].order(:name)
     erb :txns
   end
 

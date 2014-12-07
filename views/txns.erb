@@ -31,6 +31,7 @@
                     <th>Debit</th>
                     <th>Credit</th>
                     <th>Balance</th>
+                    <th class="txns-category-header">Category</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -41,6 +42,18 @@
                     <td><%= format_currency(txn[:debit_cents]) %></td>
                     <td><%= format_currency(txn[:credit_cents]) %></td>
                     <td><%= format_currency(txn[:balance_cents]) %></td>
+                    <td>
+                      <form action="/txns/<%= txn[:id] %>" method="POST">
+                        <div>
+                          <select class="form-control">
+                            <option value="0">Uncategorized</option>
+                            <% @categories.each do |c| %>
+                            <option value="<%= c[:id] %>"><%= c[:name] %></option>
+                            <% end %>
+                          </select>
+                        </div>
+                      </form>
+                    </td>
                   </tr>
                   <% end %>
                 </tbody>
