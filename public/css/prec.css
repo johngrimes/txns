@@ -5,3 +5,7 @@
 .btn-upload-statement {
   margin-bottom: 20px;
 }
+
+th.txns-date-header {
+  width: 7em;
+}
