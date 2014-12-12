@@ -3,18 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <title>Prec</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="./css/prec.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="/css/prec.css">
   </head>
   <body>
     <div class="container">
       <div class="row">
         <div class="col">
           <ul id="account-tabs" class="nav nav-tabs" role="tablist">
-            <li class="active"><a href="#">Everyday Account</a></li>
+            <% @accounts.each do |account| %>
+            <li<%= account[:id] == @account_id ? ' class="active"' : '' %>><a href="<%= account[:id] == @account_id ? '#' : "/accounts/#{account[:id]}/txns.html" %>"><%= account[:name] %></a></li>
+          <% end %>
           </ul>
         </div>
       </div>
@@ -43,12 +44,13 @@
                     <td><%= format_currency(txn[:credit_cents]) %></td>
                     <td><%= format_currency(txn[:balance_cents]) %></td>
                     <td>
-                      <form action="/txns/<%= txn[:id] %>" method="POST">
+                      <form action="/txns/<%= txn[:id] %>.json" method="POST" class="txns-category-form">
                         <div>
-                          <select class="form-control">
-                            <option value="0">Uncategorized</option>
+                          <select class="form-control selectpicker txns-category-select" data-live-search="true">
+                            <option onclick="alert('clicked'); return false;">New Category...</option>
+                            <option value="0"<%= txn[:category_id].nil? ? ' selected' : '' %>>Uncategorized</option>
                             <% @categories.each do |c| %>
-                            <option value="<%= c[:id] %>"><%= c[:name] %></option>
+                              <option value="<%= c[:id] %>"<%= c[:id] == txn[:category_id] ? ' selected' : '' %>><%= c[:name] %></option>
                             <% end %>
                           </select>
                         </div>
@@ -61,7 +63,7 @@
               <div id="modal-upload-statement" class="modal fade">
                 <div class="modal-dialog">
                   <div class="modal-content">
-                    <form action="/txns" method="POST" enctype="multipart/form-data">
+                    <form action="/accounts/<%= @account_id %>/txns.html" method="POST" enctype="multipart/form-data">
                       <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                         <h4 class="modal-title">Upload a statement</h4>
@@ -81,5 +83,9 @@
         </div>
       </div>
     </div>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap-select.min.js"></script>
+    <script src="/js/prec.js"></script>
   </body>
 </html>

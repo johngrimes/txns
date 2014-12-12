@@ -1,6 +1,6 @@
-class Prec < Sinatra::Base
-  migration 'create txns' do
-    database.create_table :txns do
+Sequel.migration do
+  change do
+    create_table :txns do
       primary_key :id
       column :hash, 'varchar(128)', :null => false
       date :date, :null => false
