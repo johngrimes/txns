@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Prec</title>
+    <title>Txns</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
@@ -47,7 +47,6 @@
                       <form action="/txns/<%= txn[:id] %>.json" method="POST" class="txns-category-form">
                         <div>
                           <select class="form-control selectpicker txns-category-select" data-live-search="true">
-                            <option onclick="alert('clicked'); return false;">New Category...</option>
                             <option value="0"<%= txn[:category_id].nil? ? ' selected' : '' %>>Uncategorized</option>
                             <% @categories.each do |c| %>
                               <option value="<%= c[:id] %>"<%= c[:id] == txn[:category_id] ? ' selected' : '' %>><%= c[:name] %></option>
