@@ -13,3 +13,7 @@ th.txns-date-header {
 th.txns-category-header {
   width: 10em;
 }
+
+#txns-filter-select {
+  float: right
+}

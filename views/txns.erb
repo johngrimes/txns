@@ -23,6 +23,10 @@
         <div class="col">
           <div id="account">
             <section>
+              <div id="txns-filter-select" class="btn-group" role="group">
+                <a href="/accounts/<%= @account_id %>/txns.html?filter=uncategorised" type="button" class="btn btn-default<%= params[:filter] == 'uncategorised' ? ' active' : '' %>">Uncategorised</a>
+                <a href="/accounts/<%= @account_id %>/txns.html" class="btn btn-default<%= params[:filter] != 'uncategorised' ? ' active' : '' %>">All</a>
+              </div>
               <button type="button" class="btn btn-primary btn-upload-statement" data-toggle="modal" data-target="#modal-upload-statement">Upload a statement</button>
               <table class="table table-bordered table-hover">
                 <thead>
@@ -47,7 +51,7 @@
                       <form action="/txns/<%= txn[:id] %>.json" method="POST" class="txns-category-form">
                         <div>
                           <select class="form-control selectpicker txns-category-select" data-live-search="true">
-                            <option value="0"<%= txn[:category_id].nil? ? ' selected' : '' %>>Uncategorized</option>
+                            <option value="0"<%= txn[:category_id].nil? ? ' selected' : '' %>>Uncategorised</option>
                             <% @categories.each do |c| %>
                               <option value="<%= c[:id] %>"<%= c[:id] == txn[:category_id] ? ' selected' : '' %>><%= c[:name] %></option>
                             <% end %>

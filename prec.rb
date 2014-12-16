@@ -15,12 +15,20 @@ class Prec < Sinatra::Base
     database.sql_log_level = :debug
   end
 
+  get '/' do
+    first_account_id = database[:accounts].select(:id).order(:id).limit(1).first[:id]
+    redirect to("/accounts/#{first_account_id}/txns.html")
+  end
+
   get '/accounts/:account_id/txns.html' do |account_id|
     @account_id = account_id.to_i
     @accounts = database[:accounts].order(:id)
     @txns = database[:txns].where(:account_id => account_id).
       reverse_order(:date, :id)
     @categories = database[:categories].order(:name).all
+    if params[:filter] == 'uncategorised'
+      @txns = @txns.where('category_id IS NULL')
+    end
     erb :txns
   end
 
