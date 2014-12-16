@@ -9,6 +9,10 @@ require 'pry-remote'
 class Prec < Sinatra::Base
   register Sinatra::SequelExtension
 
+  use Rack::Auth::Basic, "Restricted Area" do |username, password|
+    username == ENV['AUTH_USER'] and password == ENV['AUTH_PASSWORD']
+  end
+
   configure do
     $stdout.sync = true
     database.logger = Logger.new($stdout)
