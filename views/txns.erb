@@ -51,6 +51,7 @@
                       <form action="/txns/<%= txn[:id] %>.json" method="POST" class="txns-category-form">
                         <div>
                           <select class="form-control selectpicker txns-category-select" data-live-search="true">
+                            <option value="new-category" data-toggle="modal" data-target="#modal-new-category">New Category...</option>
                             <option value="0"<%= txn[:category_id].nil? ? ' selected' : '' %>>Uncategorised</option>
                             <% @categories.each do |c| %>
                               <option value="<%= c[:id] %>"<%= c[:id] == txn[:category_id] ? ' selected' : '' %>><%= c[:name] %></option>
@@ -76,6 +77,24 @@
                       </div>
                       <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Upload</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div id="modal-new-category" class="modal fade">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="/categories.html" method="POST">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">New Category</h4>
+                      </div>
+                      <div class="modal-body">
+                        <input type="text" class="form-control" name="name" id="new-category-name" placeholder="Category name">
+                      </div>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Create</button>
                       </div>
                     </form>
                   </div>

@@ -1,4 +1,0 @@
-json = []
-@accounts.each do |account|
-  json << { 'name' => account.name }
-end

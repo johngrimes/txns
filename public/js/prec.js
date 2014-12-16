@@ -14,6 +14,13 @@ $(document).ready(function() {
     var form = $(this).parents('form').first();
     var action = $(form).attr('action');
     var value = this.value == 0 ? null : this.value;
+    if (this.value == 'new-category') {
+      $('#modal-new-category').modal();
+      $('#modal-new-category').on('shown.bs.modal', function (e) {
+        $('#new-category-name').focus();
+      });
+      return false;
+    }
     $.ajax({
       url: action,
       data: JSON.stringify({

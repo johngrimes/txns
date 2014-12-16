@@ -16,8 +16,7 @@ class Prec < Sinatra::Base
   end
 
   get '/' do
-    first_account_id = database[:accounts].select(:id).order(:id).limit(1).first[:id]
-    redirect to("/accounts/#{first_account_id}/txns.html")
+    redirect_to_first_account
   end
 
   get '/accounts/:account_id/txns.html' do |account_id|
@@ -61,15 +60,9 @@ class Prec < Sinatra::Base
     200
   end
 
-  get '/accounts.json' do
-    @accounts = database[:accounts].order(:id)
-    yajl :accounts
-  end
-
-  post '/accounts.json' do
-    data = JSON.parse(request.body.read)
-    database[:accounts].insert(:name => data['account']['name'])
-    200
+  post '/categories.html' do
+    database[:categories].insert(:name => params[:name])
+    redirect_to_first_account
   end
 
   def hash_txn_row(row)
@@ -93,5 +86,10 @@ class Prec < Sinatra::Base
     return '0.00' if cents.nil?
     dollars = cents / 100.0
     "%.2f" % dollars
+  end
+
+  def redirect_to_first_account
+    first_account_id = database[:accounts].select(:id).order(:id).limit(1).first[:id]
+    redirect to("/accounts/#{first_account_id}/txns.html")
   end
 end
