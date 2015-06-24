@@ -14,6 +14,37 @@ th.txns-category-header {
   width: 10em;
 }
 
+thead tr {
+  background-color: white;
+}
+
+tr {
+  background-color: #EEFFCC;
+}
+
+tr.uncategorised {
+  background-color: #FED0D2;
+}
+
 #txns-filter-select {
   float: right
+}
+
+.pagination {
+  float: right
+}
+
+.pagination a {
+  border: 1px solid #CCC;
+  text-decoration: underline;
+  padding: 5px;
+}
+
+.pagination a.current {
+  color: #666;
+  text-decoration: none;
+}
+
+.pagination a.current:hover {
+  cursor: default;
 }

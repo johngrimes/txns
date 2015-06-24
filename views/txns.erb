@@ -28,7 +28,7 @@
                 <a href="/accounts/<%= @account_id %>/txns.html" class="btn btn-default<%= params[:filter] != 'uncategorised' ? ' active' : '' %>">All</a>
               </div>
               <button type="button" class="btn btn-primary btn-upload-statement" data-toggle="modal" data-target="#modal-upload-statement">Upload a statement</button>
-              <table class="table table-bordered table-hover">
+              <table class="table table-bordered">
                 <thead>
                   <tr>
                     <th class="txns-date-header">Date</th>
@@ -41,7 +41,7 @@
                 </thead>
                 <tbody>
                   <% @txns.each do |txn| %>
-                  <tr>
+                  <tr<%= txn[:category_id].nil? ? ' class="uncategorised"' : '' %>>
                     <td><%= txn[:date] %></td>
                     <td><%= txn[:description] %></td>
                     <td><%= format_currency(txn[:debit_cents]) %></td>
@@ -64,6 +64,13 @@
                   <% end %>
                 </tbody>
               </table>
+              <% if @page_count > 1 %>
+              <div class="pagination">
+                <% (1..@page_count).each do |i| %>
+                  <a <%= i == @current_page ? 'class = "current" ' : '' %>href="?page=<%= i %>"><%= i %></a>
+                <% end %>
+              </div>
+              <% end %>
               <div id="modal-upload-statement" class="modal fade">
                 <div class="modal-dialog">
                   <div class="modal-content">

@@ -31,6 +31,11 @@ $(document).ready(function() {
       type: 'PATCH',
       error: handleCatChangeError
     });
+    if (this.value == '0') {
+      $(this).parents('tr').first().addClass('uncategorised');
+    } else {
+      $(this).parents('tr').first().removeClass('uncategorised');
+    }
     return true;
   });
 });

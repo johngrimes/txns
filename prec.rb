@@ -24,10 +24,16 @@ class Prec < Sinatra::Base
   end
 
   get '/accounts/:account_id/txns.html' do |account_id|
+    @current_page = params[:page] ? params[:page].to_i : 1
+    limit = ENV['PAGE_SIZE'].to_i
+    offset = (@current_page - 1) * limit
+
     @account_id = account_id.to_i
     @accounts = database[:accounts].order(:id)
     @txns = database[:txns].where(:account_id => account_id).
-      reverse_order(:date, :id)
+      reverse_order(:date, :id).limit(limit).offset(offset)
+    @txn_count = database[:txns].where(:account_id => account_id).count
+    @page_count = @txn_count / limit + (@txn_count % limit > 0 ? 1 : 0)
     @categories = database[:categories].order(:name).all
     if params[:filter] == 'uncategorised'
       @txns = @txns.where('category_id IS NULL')
