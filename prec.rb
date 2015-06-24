@@ -30,14 +30,15 @@ class Prec < Sinatra::Base
 
     @account_id = account_id.to_i
     @accounts = database[:accounts].order(:id)
-    @txns = database[:txns].where(:account_id => account_id).
-      reverse_order(:date, :id).limit(limit).offset(offset)
-    @txn_count = database[:txns].where(:account_id => account_id).count
-    @page_count = @txn_count / limit + (@txn_count % limit > 0 ? 1 : 0)
-    @categories = database[:categories].order(:name).all
+    @txns = database[:txns].where(:account_id => account_id)
     if params[:filter] == 'uncategorised'
       @txns = @txns.where('category_id IS NULL')
     end
+    @txn_count = @txns.count
+    @page_count = @txn_count / limit + (@txn_count % limit > 0 ? 1 : 0)
+    @txns = @txns.reverse_order(:date, :id).limit(limit).offset(offset)
+    @categories = database[:categories].order(:name).all
+
     erb :txns
   end
 
