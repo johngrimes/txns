@@ -6,7 +6,7 @@ require 'logger'
 
 require 'pry-remote'
 
-class Prec < Sinatra::Base
+class Txns < Sinatra::Base
   register Sinatra::SequelExtension
 
   use Rack::Auth::Basic, "Restricted Area" do |username, password|

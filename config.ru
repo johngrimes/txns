@@ -1,3 +1,3 @@
-require './prec'
+require './txns'
 use Rack::Deflater
-run Prec
+run Txns
