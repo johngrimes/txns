@@ -17,6 +17,7 @@ class Txns < Sinatra::Base
     $stdout.sync = true
     database.logger = Logger.new($stdout)
     database.sql_log_level = :debug
+    database.extension :pg_array
   end
 
   get '/' do
@@ -45,8 +46,11 @@ class Txns < Sinatra::Base
   post '/accounts/:account_id/txns.html' do |account_id|
     account_id = account_id.to_i
     tempfile = params[:txn_file][:tempfile]
-    txns = []
+    hashes = []
     CSV.foreach(tempfile, :headers => :first_row) do |row|
+      # Swap debit and credit values within row.
+      row[2], row[3] = row[3], row[2]
+
       hash = hash_txn_row(row.to_a.map { |x| x.last })
       next unless
         database[:txns].where(:account_id => account_id, :hash => hash).empty?
@@ -59,7 +63,18 @@ class Txns < Sinatra::Base
         :date => date, :description => description,
         :debit_cents => debit_cents, :credit_cents => credit_cents,
         :balance_cents => balance_cents)
+
+      hashes << hash
     end
+
+    # Insert a row representing the import, with an array containing the hash
+    # of each transaction that was imported.
+    database.run <<-SQL
+      INSERT INTO imports (datetime, hashes)
+      VALUES ('#{Time.now.iso8601}',
+              '{#{hashes.map { |x| "\"#{x}\"" }.join(', ')}}')
+    SQL
+
     redirect to("/accounts/#{account_id}/txns.html")
   end
 
