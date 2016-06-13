@@ -38,6 +38,7 @@ tr.uncategorised {
   border: 1px solid #CCC;
   text-decoration: underline;
   padding: 5px;
+  line-height: 2.5em;
 }
 
 .pagination a.current {
