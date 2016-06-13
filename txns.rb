@@ -70,8 +70,8 @@ class Txns < Sinatra::Base
     # Insert a row representing the import, with an array containing the hash
     # of each transaction that was imported.
     database.run <<-SQL
-      INSERT INTO imports (datetime, hashes)
-      VALUES ('#{Time.now.iso8601}',
+      INSERT INTO imports (account_id, datetime, hashes)
+      VALUES (#{account_id}, '#{Time.now.iso8601}',
               '{#{hashes.map { |x| "\"#{x}\"" }.join(', ')}}')
     SQL
 
